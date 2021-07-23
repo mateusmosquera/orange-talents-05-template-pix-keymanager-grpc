@@ -1,6 +1,6 @@
 applicationType: grpc
-defaultPackage: com.br.zupacademy.mateus
+defaultPackage: br.com.zupacademy.mateus
 testFramework: junit
-sourceLanguage: java
-buildTool: gradle
-features: [annotation-api, app-name, data, data-jpa, gradle, grpc, h2, java, java-application, jdbc-hikari, junit, logback, readme, shade, yaml]
+sourceLanguage: kotlin
+buildTool: gradle_kotlin
+features: [annotation-api, app-name, data, data-jpa, gradle, grpc, h2, hibernate-jpa, jdbc-hikari, junit, kotlin, kotlin-application, logback, readme, shade, yaml]
