@@ -1,4 +1,4 @@
-package br.com.zupacademy.mateus.endypoint
+package br.com.zupacademy.mateus.endpoint
 
 import br.com.zupacademy.mateus.KeymanagerRegistraGrpcServiceGrpc
 import br.com.zupacademy.mateus.RegistraChavePixRequest

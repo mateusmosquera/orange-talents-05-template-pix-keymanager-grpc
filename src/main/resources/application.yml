@@ -13,7 +13,7 @@ datasources:
     url: jdbc:mysql://${127.0.0.1:localhost}:3306/pix?createDatabaseIfNotExist=true&serverTimezone=UTC
     driverClassName: com.mysql.cj.jdbc.Driver
     username: root
-    password: 
+    password:
     schema-generate: CREATE_DROP
     dialect: MYSQL
 
