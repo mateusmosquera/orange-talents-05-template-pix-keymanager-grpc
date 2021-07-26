@@ -45,7 +45,7 @@ dependencies {
     implementation("io.micronaut.xml:micronaut-jackson-xml")
     runtimeOnly("ch.qos.logback:logback-classic")
     runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
-    runtimeOnly("mysql:mysql-connector-java")
+    runtimeOnly("org.postgresql:postgresql")
 
     //test
     //kaptTest "io.micronaut:micronaut-inject-java"
