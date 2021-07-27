@@ -1,9 +1,6 @@
 package br.com.zupacademy.mateus.client
 
-import br.com.zupacademy.mateus.model.ChavePix
-import br.com.zupacademy.mateus.model.ContaAssociada
-import br.com.zupacademy.mateus.model.TipoDeChave
-import br.com.zupacademy.mateus.model.TipoDeConta
+import br.com.zupacademy.mateus.model.*
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.MediaType
 import io.micronaut.http.annotation.*
@@ -43,7 +40,23 @@ class PixKeyDetailsResponse(
     val owner: Owner,
     val createdAt: LocalDateTime
 ){
-
+    fun toModel(): ChavePixInfo {
+        return ChavePixInfo(
+            tipo = keyType.domainType!!,
+            chave = this.key,
+            tipoDeConta = when (this.bankAccount.accountType) {
+                BankAccount.AccountType.CACC -> TipoDeConta.CONTA_CORRENTE
+                BankAccount.AccountType.SVGS -> TipoDeConta.CONTA_POUPANCA
+            },
+            conta = ContaAssociada(
+                instituicao = Instituicoes.nome(bankAccount.participant),
+                nomeDoTitular = owner.name,
+                cpfDoTitular = owner.taxIdNumber,
+                agencia = bankAccount.branch,
+                numeroDaConta = bankAccount.accountNumber
+            )
+        )
+    }
 }
 
 data class DeletePixKeyResponse(

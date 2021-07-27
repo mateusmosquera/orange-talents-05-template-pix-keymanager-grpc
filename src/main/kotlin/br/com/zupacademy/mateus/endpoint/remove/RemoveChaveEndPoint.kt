@@ -1,4 +1,4 @@
-package br.com.zupacademy.mateus.endpoint
+package br.com.zupacademy.mateus.endpoint.remove
 
 import br.com.zupacademy.mateus.KeymanagerRemoveGrpcServiceGrpc
 import br.com.zupacademy.mateus.RemoveChavePixRequest

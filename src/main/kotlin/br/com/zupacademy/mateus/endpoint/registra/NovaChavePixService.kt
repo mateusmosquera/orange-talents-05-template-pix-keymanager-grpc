@@ -1,4 +1,4 @@
-package br.com.zupacademy.mateus.endpoint
+package br.com.zupacademy.mateus.endpoint.registra
 
 import br.com.zupacademy.mateus.client.BancoCentralClient
 import br.com.zupacademy.mateus.client.ContasDeClientesNoItauClient

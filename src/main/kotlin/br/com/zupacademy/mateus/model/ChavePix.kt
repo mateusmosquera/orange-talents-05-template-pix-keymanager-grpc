@@ -55,4 +55,6 @@ class ChavePix(
         return tipo == TipoDeChave.ALEATORIA
     }
 
+    fun pertenceAo(clienteId: UUID) = this.clienteId.equals(clienteId)
+
 }
