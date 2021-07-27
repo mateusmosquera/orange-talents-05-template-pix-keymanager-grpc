@@ -4,7 +4,6 @@ import br.com.zupacademy.mateus.KeymanagerRegistraGrpcServiceGrpc
 import br.com.zupacademy.mateus.RegistraChavePixRequest
 import br.com.zupacademy.mateus.RegistraChavePixResponse
 import br.com.zupacademy.mateus.handler.ErrorHandler
-import br.com.zupacademy.mateus.service.NovaChavePixService
 import io.grpc.stub.StreamObserver
 import javax.inject.Inject
 import javax.inject.Singleton

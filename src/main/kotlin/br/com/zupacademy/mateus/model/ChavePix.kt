@@ -43,4 +43,16 @@ class ChavePix(
     @Column(nullable = false)
     val criadaEm: LocalDateTime = LocalDateTime.now()
 
+    fun atualiza(chave: String): Boolean{
+        if(isAleatoria()){
+            this.chave = chave
+            return true
+        }
+        return false
+    }
+
+    private fun isAleatoria(): Boolean {
+        return tipo == TipoDeChave.ALEATORIA
+    }
+
 }
