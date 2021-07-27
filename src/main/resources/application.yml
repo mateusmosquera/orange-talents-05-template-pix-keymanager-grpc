@@ -13,7 +13,7 @@ datasources:
     url: jdbc:postgresql://localhost:5432/pix
     driverClassName: org.postgresql.Driver
     username: postgres
-    password: 
+    password: mateusmol1
 
 jpa.default.properties.hibernate.hbm2ddl.auto: update
 jpa.default.properties.hibernate.show_sql: true

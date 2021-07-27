@@ -24,7 +24,7 @@ class NovaChavePixService(@Inject val repository: ChavePixRepository,
 
     fun registra(@Valid novaChave: NovaChavePix): ChavePix {
 
-        if (repository.existsByChave(novaChave.chave)) // 1
+        if (repository.existsByChave(novaChave.chave))
             throw ChavePixExistenteException("Chave Pix '${novaChave.chave}' existente")
 
         val response = itauClient.buscaContaPorTipo(novaChave.clienteId, novaChave.tipoDeConta!!.name)

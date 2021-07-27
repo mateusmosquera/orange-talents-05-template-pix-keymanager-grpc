@@ -34,7 +34,7 @@ class RemoveChaveService (@Inject val repository: ChavePixRepository,
 
         val request = DeletePixKeyRequest(chave.chave)
 
-        val bcbResponse = bcbClient.delete(key = chave.chave, request = request)
+        val bcbResponse = bcbClient.delete(chave.chave,request)
         if(bcbResponse.status != HttpStatus.OK){
             throw IllegalStateException("Erro ao remover chave Pix no Banco Central do Bransil (BCB)")
         }

@@ -2,6 +2,9 @@ package br.com.zupacademy.mateus.endpoint
 
 import br.com.zupacademy.mateus.KeymanagerRemoveGrpcServiceGrpc
 import br.com.zupacademy.mateus.RemoveChavePixRequest
+import br.com.zupacademy.mateus.client.BancoCentralClient
+import br.com.zupacademy.mateus.client.DeletePixKeyRequest
+import br.com.zupacademy.mateus.client.DeletePixKeyResponse
 import br.com.zupacademy.mateus.model.ChavePix
 import br.com.zupacademy.mateus.model.ContaAssociada
 import br.com.zupacademy.mateus.model.TipoDeChave
@@ -14,13 +17,19 @@ import io.micronaut.context.annotation.Bean
 import io.micronaut.context.annotation.Factory
 import io.micronaut.grpc.annotation.GrpcChannel
 import io.micronaut.grpc.server.GrpcServerChannel
+import io.micronaut.http.HttpResponse
+import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.mockito.Mockito
+import org.mockito.Mockito.`when`
+import java.time.LocalDateTime
 import java.util.*
+import javax.inject.Inject
 
 @MicronautTest(transactional = false)
 internal class RemoveChaveEndPointTest(
@@ -29,6 +38,10 @@ internal class RemoveChaveEndPointTest(
 ){
 
     lateinit var CHAVE_EXISTENTE: ChavePix
+
+    @Inject
+    lateinit var bcbClient: BancoCentralClient
+
 
     @BeforeEach
     fun setup(){
@@ -47,6 +60,12 @@ internal class RemoveChaveEndPointTest(
     @Test
     fun `deve remover chave pix`(){
 
+        `when`(bcbClient.delete("mateus@gmail.com", DeletePixKeyRequest("mateus@gmail.com")))
+            .thenReturn(HttpResponse.ok(DeletePixKeyResponse(key = "mateus@gmail.com",
+                                                             participant = ContaAssociada.ITAU_UNIBANCO_ISPB,
+                                                             deleteAt = LocalDateTime.now()))
+            )
+
         val response = grpcClient.remove(RemoveChavePixRequest.newBuilder()
                                                 .setPixId(CHAVE_EXISTENTE.id.toString())
                                                 .setClienteId(CHAVE_EXISTENTE.clienteId.toString())
@@ -57,6 +76,26 @@ internal class RemoveChaveEndPointTest(
 
     }
 
+    @Test
+    fun `nao deve remover chave pix existente quando ocorrer algum erro no serviço do BCB`() {
+        // cenário
+        `when`(bcbClient.delete("rponte@gmail.com", DeletePixKeyRequest("rponte@gmail.com")))
+            .thenReturn(HttpResponse.unprocessableEntity())
+
+        // ação
+        val thrown = assertThrows<StatusRuntimeException> {
+            grpcClient.remove(RemoveChavePixRequest.newBuilder()
+                .setPixId(CHAVE_EXISTENTE.id.toString())
+                .setClienteId(CHAVE_EXISTENTE.clienteId.toString())
+                .build())
+        }
+
+        // validação
+        with(thrown) {
+            assertEquals(Status.FAILED_PRECONDITION.code, status.code)
+            assertEquals("Erro ao remover chave Pix no Banco Central do Brasil (BCB)", status.description)
+        }
+    }
     @Test
     fun `nao deve remover chave pix quando chave inexistente`(){
 
@@ -92,6 +131,10 @@ internal class RemoveChaveEndPointTest(
         }
     }
 
+    @MockBean(BancoCentralClient::class)
+    fun bcbClient(): BancoCentralClient? {
+        return Mockito.mock(BancoCentralClient::class.java)
+    }
 
     @Factory
     class ClientsRemoveChavePix  {

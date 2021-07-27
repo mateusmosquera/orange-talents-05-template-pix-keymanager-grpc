@@ -4,7 +4,7 @@ import br.com.zupacademy.mateus.KeymanagerRegistraGrpcServiceGrpc
 import br.com.zupacademy.mateus.RegistraChavePixRequest
 import br.com.zupacademy.mateus.TipoDeChave
 import br.com.zupacademy.mateus.TipoDeConta.CONTA_CORRENTE
-import br.com.zupacademy.mateus.client.ContasDeClientesNoItauClient
+import br.com.zupacademy.mateus.client.*
 import br.com.zupacademy.mateus.model.ChavePix
 import br.com.zupacademy.mateus.model.ContaAssociada
 import br.com.zupacademy.mateus.model.TipoDeChave.*
@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
+import java.time.LocalDateTime
 import java.util.*
 import javax.inject.Inject
 
@@ -40,10 +41,13 @@ internal class RegistraChaveEndpointTest(
 ){
 
     @Inject
+    lateinit var bcbClient: BancoCentralClient
+
+    @Inject
     lateinit var itauClient: ContasDeClientesNoItauClient;
 
     companion object{
-        val CLIENT_ID = UUID.randomUUID()
+        val CLIENTE_ID = UUID.randomUUID()
     }
 
     @BeforeEach
@@ -53,18 +57,21 @@ internal class RegistraChaveEndpointTest(
 
     @Test
     fun `deve registrar nova chave pix`(){
-        `when`(itauClient.buscaContaPorTipo(clienteId = CLIENT_ID.toString(), tipo = "CONTA_CORRENTE"))
+        `when`(itauClient.buscaContaPorTipo(clienteId = CLIENTE_ID.toString(), tipo = "CONTA_CORRENTE"))
             .thenReturn(HttpResponse.ok(dadosDaContaResponse()))
 
+        `when`(bcbClient.create(createPixKeyRequest()))
+            .thenReturn(HttpResponse.created(createPixKeyResponse()))
+
         val response =  grpcClient.registra(RegistraChavePixRequest.newBuilder()
-            .setClienteId(CLIENT_ID.toString())
+            .setClienteId(CLIENTE_ID.toString())
             .setTipoDeChave(TipoDeChave.EMAIL)
             .setChave("mateus@gmail.com")
             .setTipoDeConta(CONTA_CORRENTE)
             .build())
 
         with(response){
-            assertEquals(CLIENT_ID.toString(), clienteId)
+            assertEquals(CLIENTE_ID.toString(), clienteId)
             assertNotNull(pixId)
         }
     }
@@ -75,12 +82,12 @@ internal class RegistraChaveEndpointTest(
         repository.save(chave(
             tipo = CPF,
             chave = "18458928019",
-            clienteId = CLIENT_ID
+            clienteId = CLIENTE_ID
         ))
 
         val thrown = assertThrows<StatusRuntimeException> {
             grpcClient.registra(RegistraChavePixRequest.newBuilder()
-                .setClienteId(CLIENT_ID.toString())
+                .setClienteId(CLIENTE_ID.toString())
                 .setTipoDeChave(TipoDeChave.CPF)
                 .setChave("18458928019")
                 .setTipoDeConta(CONTA_CORRENTE)
@@ -96,13 +103,13 @@ internal class RegistraChaveEndpointTest(
     @Test
     fun `nao deve registrar chave pix quando nao encontrar dados da conta cliente`(){
         `when`(itauClient.buscaContaPorTipo(
-            clienteId = CLIENT_ID.toString(),
+            clienteId = CLIENTE_ID.toString(),
             tipo = "CONTA_CORRENTE")
         ).thenReturn(HttpResponse.notFound())
 
         val thrown = assertThrows<StatusRuntimeException> {
             grpcClient.registra(RegistraChavePixRequest.newBuilder()
-                .setClienteId(CLIENT_ID.toString())
+                .setClienteId(CLIENTE_ID.toString())
                 .setTipoDeChave(TipoDeChave.EMAIL)
                 .setChave("mateus@gmail.com")
                 .setTipoDeConta(CONTA_CORRENTE)
@@ -128,9 +135,37 @@ internal class RegistraChaveEndpointTest(
         }
     }
 
+    @Test
+    fun `nao deve registrar chave pix quando nao for possivel registrar chave no BCB`() {
+
+        `when`(itauClient.buscaContaPorTipo(clienteId = CLIENTE_ID.toString(), tipo = "CONTA_CORRENTE"))
+            .thenReturn(HttpResponse.ok(dadosDaContaResponse()))
+
+        `when`(bcbClient.create(createPixKeyRequest()))
+            .thenReturn(HttpResponse.badRequest())
+
+        val thrown = assertThrows<StatusRuntimeException> {
+            grpcClient.registra(RegistraChavePixRequest.newBuilder()
+                .setClienteId(CLIENTE_ID.toString())
+                .setTipoDeChave(TipoDeChave.EMAIL)
+                .setChave("rponte@gmail.com")
+                .setTipoDeConta(CONTA_CORRENTE)
+                .build())
+        }
+
+        with(thrown) {
+            assertEquals(Status.FAILED_PRECONDITION.code, status.code)
+            assertEquals("Erro ao registrar chave Pix no Banco Central do Brasil (BCB)", status.description)
+        }
+    }
+
+    @MockBean(BancoCentralClient::class)
+    fun bcbClient(): BancoCentralClient {
+        return Mockito.mock(BancoCentralClient::class.java)
+    }
 
     @MockBean(ContasDeClientesNoItauClient::class)
-    fun itauClient(): ContasDeClientesNoItauClient? {
+    fun itauClient(): ContasDeClientesNoItauClient {
         return Mockito.mock(ContasDeClientesNoItauClient::class.java)
     }
 
@@ -149,6 +184,42 @@ internal class RegistraChaveEndpointTest(
             agencia = "1234",
             numero = "345678",
             titular = TitularResponse("Rogerio Silva", "18458928019")
+        )
+    }
+
+    private fun createPixKeyRequest(): CreatePixKeyRequest {
+        return CreatePixKeyRequest(
+            keyType = PixKeyType.EMAIL,
+            key = "rponte@gmail.com",
+            bankAccount = bankAccount(),
+            owner = owner()
+        )
+    }
+
+    private fun createPixKeyResponse(): CreatePixKeyResponse {
+        return CreatePixKeyResponse(
+            keyType = PixKeyType.EMAIL,
+            key = "rponte@gmail.com",
+            bankAccount = bankAccount(),
+            owner = owner(),
+            createdAt = LocalDateTime.now()
+        )
+    }
+
+    private fun bankAccount(): BankAccount {
+        return BankAccount(
+            participant = ContaAssociada.ITAU_UNIBANCO_ISPB,
+            branch = "1218",
+            accountNumber = "291900",
+            accountType = BankAccount.AccountType.CACC
+        )
+    }
+
+    private fun owner(): Owner {
+        return Owner(
+            type = Owner.OwnerType.NATURAL_PERSON,
+            name = "Rafael Ponte",
+            taxIdNumber = "63657520325"
         )
     }
 
@@ -171,4 +242,6 @@ internal class RegistraChaveEndpointTest(
             )
         )
     }
+
+
 }
