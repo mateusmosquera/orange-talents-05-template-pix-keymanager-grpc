@@ -233,7 +233,7 @@ internal class CarregaChaveEndpointTest(
     }
 
     @Factory
-    class Clients  {
+    class ClientsCarregaChavePix  {
         @Bean
         fun blockingStub(@GrpcChannel(GrpcServerChannel.NAME) channel: ManagedChannel): KeymanagerCarregaGrpcServiceGrpc.KeymanagerCarregaGrpcServiceBlockingStub? {
             return KeymanagerCarregaGrpcServiceGrpc.newBlockingStub(channel)
