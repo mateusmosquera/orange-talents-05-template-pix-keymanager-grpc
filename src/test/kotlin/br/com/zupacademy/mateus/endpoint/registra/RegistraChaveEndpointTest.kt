@@ -1,4 +1,4 @@
-package br.com.zupacademy.mateus.endpoint
+package br.com.zupacademy.mateus.endpoint.registra
 
 import br.com.zupacademy.mateus.KeymanagerRegistraGrpcServiceGrpc
 import br.com.zupacademy.mateus.RegistraChavePixRequest
@@ -7,7 +7,7 @@ import br.com.zupacademy.mateus.TipoDeConta.CONTA_CORRENTE
 import br.com.zupacademy.mateus.client.*
 import br.com.zupacademy.mateus.model.ChavePix
 import br.com.zupacademy.mateus.model.ContaAssociada
-import br.com.zupacademy.mateus.model.TipoDeChave.*
+import br.com.zupacademy.mateus.model.TipoDeChave.CPF
 import br.com.zupacademy.mateus.model.TipoDeConta
 import br.com.zupacademy.mateus.model.response.DadosDaContaResponse
 import br.com.zupacademy.mateus.model.response.InstituicaoResponse
@@ -23,10 +23,10 @@ import io.micronaut.grpc.server.GrpcServerChannel
 import io.micronaut.http.HttpResponse
 import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
